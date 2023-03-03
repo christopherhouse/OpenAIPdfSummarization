@@ -24,7 +24,7 @@ namespace OpenAIPdfSummarization
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-
+            throw new NotImplementedException();
         }
     }
 }

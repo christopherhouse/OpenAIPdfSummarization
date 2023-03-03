@@ -1,13 +1,16 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 
-namespace OpenAIPdfSummarization
+namespace OpenAIPdfSummarization.Functions
 {
     public static class StartPdfTextExtraction
     {
@@ -34,17 +37,29 @@ namespace OpenAIPdfSummarization
         }
 
         [FunctionName("StartPdfTextExtraction_HttpStart")]
-        public static async Task<HttpResponseMessage> HttpStart(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestMessage req,
+        public static async Task<IActionResult> HttpStart(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req,
             [DurableClient] IDurableOrchestrationClient starter,
             ILogger log)
         {
-            // Function input comes from the request content.
-            string instanceId = await starter.StartNewAsync("StartPdfTextExtraction", null);
+            var formData = await req.ReadFormAsync();
+            var file = formData.Files["file"];
+            var fileName = file.Name;
+            var fileBytes = new byte[file.Length];
 
-            log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
+            using (var memory = new MemoryStream())
+            {
+                await file.CopyToAsync(memory);
+                fileBytes = memory.ToArray();
+            }
 
-            return starter.CreateCheckStatusResponse(req, instanceId);
+            //// Function input comes from the request content.
+            //    string instanceId = await starter.StartNewAsync("StartPdfTextExtraction", null);
+
+            //log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
+
+            //return starter.CreateCheckStatusResponse(req, instanceId);
+            return new OkObjectResult(new { FileName = fileName, FileSize = file.Length });
         }
     }
 }
