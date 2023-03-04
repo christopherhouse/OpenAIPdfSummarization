@@ -1,18 +1,19 @@
 param functionAppName string
 param storageAccountName string
+param storageAccountResourceId string
 param appInsightsName string
 param cognitiveServicesAccountName string
 param cognitiveServicesResourceId string
-param cognitiveServicesAPIVersion string
 param openAIAccountName string
 param openAIResourceId string
-param openAIAPIVersion string
 param blobContainerName string
 param openAIDeploymentName string
 param location string
 
-var cognitiveSvcsKey = listKeys(cognitiveServicesResourceId, cognitiveServicesAPIVersion).key1
-var openAIKey = listKeys(openAIResourceId, openAIAPIVersion).key1
+var cogSvcsAPIVersion = '2022-12-01'
+var cognitiveSvcsKey = listKeys(cognitiveServicesResourceId, cogSvcsAPIVersion).key1
+var openAIKey = listKeys(openAIResourceId, cogSvcsAPIVersion).key1
+var storageAccountKey = listKeys(storageAccountResourceId, '2019-06-01').keys[0].value
 
 resource cogSvcs 'Microsoft.CognitiveServices/accounts@2022-12-01' existing = {
   name: cognitiveServicesAccountName
@@ -71,6 +72,10 @@ resource funcApp 'Microsoft.Web/sites@2022-03-01' = {
         {
           name: 'storageAccountName'
           value: storageAccountName
+        }
+        {
+          name: 'storageAccountKey'
+          value: storageAccountKey
         }
         {
           name: 'FUNCTIONS_EXTENSION_VERSION'
