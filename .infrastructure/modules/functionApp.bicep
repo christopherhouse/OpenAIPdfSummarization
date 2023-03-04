@@ -1,7 +1,26 @@
 param functionAppName string
 param storageAccountName string
 param appInsightsName string
+param cognitiveServicesAccountName string
+param cognitiveServicesResourceId string
+param cognitiveServicesAPIVersion string
+param openAIAccountName string
+param openAIResourceId string
+param openAIAPIVersion string
+param blobContainerName string
+param openAIDeploymentName string
 param location string
+
+var cognitiveSvcsKey = listKeys(cognitiveServicesResourceId, cognitiveServicesAPIVersion).key1
+var openAIKey = listKeys(openAIResourceId, openAIAPIVersion).key1
+
+resource cogSvcs 'Microsoft.CognitiveServices/accounts@2022-12-01' existing = {
+  name: cognitiveServicesAccountName
+}
+
+resource openAI 'Microsoft.CognitiveServices/accounts@2022-12-01' existing = {
+  name: openAIAccountName
+}
 
 resource funcHhostingPlan 'Microsoft.Web/serverfarms@2021-03-01' ={
   name: '${functionAppName}-asp'
@@ -25,6 +44,34 @@ resource funcApp 'Microsoft.Web/sites@2022-03-01' = {
   properties: {
     siteConfig: {
       appSettings: [
+        {
+          name: 'cognitiiveServicesEndpoint'
+          value: cogSvcs.properties.endpoint
+        }
+        {
+          name: 'cognitiiveServicesKey'
+          value: cognitiveSvcsKey
+        }
+        {
+          name: 'openAIEndpoint'
+          value: openAI.properties.endpoint
+        }
+        {
+          name: 'openAIKey'
+          value: openAIKey
+        }
+        {
+          name: 'openAIDeployment'
+          value: openAIDeploymentName
+        }
+        {
+          name: 'blobContainer'
+          value: blobContainerName
+        }
+        {
+          name: 'storageAccountName'
+          value: storageAccountName
+        }
         {
           name: 'FUNCTIONS_EXTENSION_VERSION'
           value: '~4'
