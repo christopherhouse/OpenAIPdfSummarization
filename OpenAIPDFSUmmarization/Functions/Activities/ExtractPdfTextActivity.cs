@@ -12,11 +12,11 @@ namespace OpenAIPdfSummarization.Functions.Activities;
 public class ExtractPdfTextActivity
 {
     private static readonly DocumentAnalysisClient _documentAnalysisClient = new DocumentAnalysisClient(
-        new Uri(Environment.GetEnvironmentVariable("formsRecognizerEndpoint")),
-        new AzureKeyCredential(Environment.GetEnvironmentVariable("formsRecognizerKey")));
+        new Uri(Environment.GetEnvironmentVariable("cognitiveServicesEndpoint")),
+        new AzureKeyCredential(Environment.GetEnvironmentVariable("cognitiveServicesKey")));
 
     [FunctionName(nameof(ExtractPdfTextActivity))]
-    public static async Task<PdfText> ExtractPdfText([ActivityTrigger] Uri blobSasUri)
+    public async Task<PdfText> ExtractPdfText([ActivityTrigger] Uri blobSasUri)
     {
         var pdfText = new PdfText();
 

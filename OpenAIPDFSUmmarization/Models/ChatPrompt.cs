@@ -11,7 +11,7 @@ public class ChatPrompt
     public ChatPrompt(string text, int maxTokens)
     {
         Prompt = text;
-        Tokens = text.Length > maxTokens ? maxTokens : text.Length;
+        Tokens = 500; //text.Length > maxTokens ? maxTokens : text.Length;
     }
 
     [JsonProperty("max_tokens")]
