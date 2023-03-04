@@ -11,25 +11,16 @@ namespace OpenAIPdfSummarization.Functions;
 public static class PdfSummarizationOrchestrator
 {
     [FunctionName(nameof(PdfSummarizationOrchestrator))]
-    public static async Task<List<string>> RunOrchestrator(
+    public static async Task<string> RunOrchestrator(
         [OrchestrationTrigger] IDurableOrchestrationContext context)
     {
         var fileData = context.GetInput<FileData>();
 
-        var outputs = new List<string>();
-
-        //// Replace "hello" with the name of your Durable Activity Function.
-        //outputs.Add(await context.CallActivityAsync<string>(nameof(SayHello), "Tokyo"));
-        //outputs.Add(await context.CallActivityAsync<string>(nameof(SayHello), "Seattle"));
-        //outputs.Add(await context.CallActivityAsync<string>(nameof(SayHello), "London"));
-
         var blobSasUri = await context.CallActivityAsync<Uri>(nameof(StorePdfBlobActivity), fileData);
         var pdfText = await context.CallActivityAsync<PdfText>(nameof(ExtractPdfTextActivity), blobSasUri);
+        var summary = await context.CallActivityAsync<string>(nameof(SummarizeTextActivity), pdfText);
 
-        outputs.Add(blobSasUri.ToString());
-
-        //// returns ["Hello Tokyo!", "Hello Seattle!", "Hello London!"]
-        return outputs;
+        return summary;
     }
 
 }
