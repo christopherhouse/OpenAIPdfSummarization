@@ -28,4 +28,13 @@ public class PdfText
     {
         return $"Please summarize this text: {GetPdfText()}";
     }
+
+    public string GetTlDrPrompt()
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine(GetPdfText());
+        builder.AppendLine("tl;dr;");
+
+        return GetChatPrompt();
+    }
 }
