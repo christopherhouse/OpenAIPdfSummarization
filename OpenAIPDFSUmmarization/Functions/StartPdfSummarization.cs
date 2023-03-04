@@ -20,7 +20,7 @@ public class StartPdfSummarization
     {
         var formData = await req.ReadFormAsync();
         var file = formData.Files["file"];
-        var fileName = file.Name;
+        var fileName = file.FileName;
         byte[] fileBytes;
 
         using (var memory = new MemoryStream())

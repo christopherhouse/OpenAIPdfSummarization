@@ -13,7 +13,7 @@ namespace OpenAIPdfSummarization.Functions.Activities
     public class StorePdfBlobActivity
     {
         private static readonly string _blobContainerName = Environment.GetEnvironmentVariable("blobContainer");
-        private static readonly string _storageAccountName = Environment.GetEnvironmentVariable("storageAccontName");
+        private static readonly string _storageAccountName = Environment.GetEnvironmentVariable("storageAccountName");
 
         private static readonly Uri _blobContainerUri =
             new Uri($"https://{_storageAccountName}.blob.core.windows.net/{_blobContainerName}");
@@ -24,6 +24,7 @@ namespace OpenAIPdfSummarization.Functions.Activities
 
         private static readonly BlobContainerClient _blobContainerClient = new BlobContainerClient(_blobContainerUri, _storageCredential);
 
+        [FunctionName(nameof(StorePdfBlobActivity))]
         public static async Task<Uri> StorePdfBlob([ActivityTrigger] FileData fileData, IBinder binder)
         {
             var fileName =
@@ -33,7 +34,7 @@ namespace OpenAIPdfSummarization.Functions.Activities
             await using var writer = binder.Bind<Stream>(outputBlob);
             await writer.WriteAsync(fileData.Data);
 
-            var blobClient = new BlobClient(new Uri($"{_blobContainerUri}/{outputBlob.BlobPath}"));
+            var blobClient = new BlobClient(new Uri($"{_blobContainerUri}/{fileName}"), _storageCredential);
 
             var sasBuilder = new BlobSasBuilder()
             {
