@@ -8,47 +8,46 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using OpenAIPdfSummarization.Models;
 
-namespace OpenAIPdfSummarization.Functions.Activities
+namespace OpenAIPdfSummarization.Functions.Activities;
+
+public class StorePdfBlobActivity
 {
-    public class StorePdfBlobActivity
+    private static readonly string _blobContainerName = Environment.GetEnvironmentVariable("blobContainer");
+    private static readonly string _storageAccountName = Environment.GetEnvironmentVariable("storageAccountName");
+
+    private static readonly Uri _blobContainerUri =
+        new Uri($"https://{_storageAccountName}.blob.core.windows.net/{_blobContainerName}");
+
+    private static readonly StorageSharedKeyCredential _storageCredential = new StorageSharedKeyCredential(
+        Environment.GetEnvironmentVariable("storageAccountName"),
+        Environment.GetEnvironmentVariable(("storageAccountKey")));
+
+    private static readonly BlobContainerClient _blobContainerClient = new BlobContainerClient(_blobContainerUri, _storageCredential);
+
+    [FunctionName(nameof(StorePdfBlobActivity))]
+    public static async Task<Uri> StorePdfBlob([ActivityTrigger] FileData fileData, IBinder binder)
     {
-        private static readonly string _blobContainerName = Environment.GetEnvironmentVariable("blobContainer");
-        private static readonly string _storageAccountName = Environment.GetEnvironmentVariable("storageAccountName");
+        var fileName =
+            $"{Path.GetFileNameWithoutExtension(fileData.FileName)}_{DateTime.UtcNow.ToString("yyyy-MM-dd-HHmmss")}.{Path.GetExtension(fileData.FileName)}";
+        var outputBlob = new BlobAttribute($"{_blobContainerName}/{fileName}", FileAccess.Write);
+        outputBlob.Connection = "storageConnectionString";
+        await using var writer = binder.Bind<Stream>(outputBlob);
+        await writer.WriteAsync(fileData.Data);
 
-        private static readonly Uri _blobContainerUri =
-            new Uri($"https://{_storageAccountName}.blob.core.windows.net/{_blobContainerName}");
+        var blobClient = new BlobClient(new Uri($"{_blobContainerUri}/{fileName}"), _storageCredential);
 
-        private static readonly StorageSharedKeyCredential _storageCredential = new StorageSharedKeyCredential(
-            Environment.GetEnvironmentVariable("storageAccountName"),
-            Environment.GetEnvironmentVariable(("storageAccountKey")));
-
-        private static readonly BlobContainerClient _blobContainerClient = new BlobContainerClient(_blobContainerUri, _storageCredential);
-
-        [FunctionName(nameof(StorePdfBlobActivity))]
-        public static async Task<Uri> StorePdfBlob([ActivityTrigger] FileData fileData, IBinder binder)
+        var sasBuilder = new BlobSasBuilder()
         {
-            var fileName =
-                $"{Path.GetFileNameWithoutExtension(fileData.FileName)}_{DateTime.UtcNow.ToString("yyyy-MM-dd-HHmmss")}.{Path.GetExtension(fileData.FileName)}";
-            var outputBlob = new BlobAttribute($"{_blobContainerName}/{fileName}", FileAccess.Write);
-            outputBlob.Connection = "storageConnectionString";
-            await using var writer = binder.Bind<Stream>(outputBlob);
-            await writer.WriteAsync(fileData.Data);
+            BlobContainerName = _blobContainerName,
+            BlobName = blobClient.Name,
+            ExpiresOn = DateTime.UtcNow.AddHours(1),
+            StartsOn = DateTime.UtcNow.AddMinutes(-5)
+        };
 
-            var blobClient = new BlobClient(new Uri($"{_blobContainerUri}/{fileName}"), _storageCredential);
+        sasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.List);
 
-            var sasBuilder = new BlobSasBuilder()
-            {
-                BlobContainerName = _blobContainerName,
-                BlobName = blobClient.Name,
-                ExpiresOn = DateTime.UtcNow.AddHours(1),
-                StartsOn = DateTime.UtcNow.AddMinutes(-5)
-            };
+        var sasUri = blobClient.GenerateSasUri(sasBuilder);
 
-            sasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.List);
-
-            var sasUri = blobClient.GenerateSasUri(sasBuilder);
-
-            return sasUri;
-        }
+        return sasUri;
     }
 }

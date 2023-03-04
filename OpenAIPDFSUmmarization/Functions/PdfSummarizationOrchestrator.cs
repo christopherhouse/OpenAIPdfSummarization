@@ -27,6 +27,7 @@ namespace OpenAIPdfSummarization.Functions
             //outputs.Add(await context.CallActivityAsync<string>(nameof(SayHello), "London"));
 
             var blobSasUri = await context.CallActivityAsync<Uri>(nameof(StorePdfBlobActivity), fileData);
+            var pdfText = await context.CallActivityAsync<PdfText>(nameof(ExtractPdfTextActivity), blobSasUri);
 
             outputs.Add(blobSasUri.ToString());
 
