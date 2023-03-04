@@ -76,7 +76,7 @@ public class PdfSummarizationOrchestrator
         int totalNumberOfPages,
         bool pageSummariesSummarized)
     {
-        var customStatus = $"PDF Extraction complete: [ {(pdfExtractionCompleted ? "X" : " ")} ], Pages Summarized: {numberOfPagesSummarized}/{totalNumberOfPages}, Page Summaries Summarized: [ {(pageSummariesSummarized ? "X" : " ")} ]";
+        var customStatus = $"PDF Extraction complete: [{(pdfExtractionCompleted ? "X" : " ")}], Pages Summarized: [{numberOfPagesSummarized}/{totalNumberOfPages}], Page Summaries Summarized: [{(pageSummariesSummarized ? "X" : " ")}]";
 
         return customStatus ;
     }
