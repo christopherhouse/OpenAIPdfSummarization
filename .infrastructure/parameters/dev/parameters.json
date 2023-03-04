@@ -10,6 +10,12 @@
         },
         "environment": {
             "value": "dev"
+        },
+        "modelsToDeploy": {
+            "value": [
+              "text-davinci-002",
+              "text-davinci-003"
+            ]
         }
     }
 }
