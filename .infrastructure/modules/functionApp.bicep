@@ -3,18 +3,6 @@ param storageAccountName string
 param appInsightsName string
 param location string
 
-resource funcStorageAccount 'Microsoft.Storage/storageAccounts@2019-06-01' = {
-  name: storageAccountName
-  location: location
-  kind: 'StorageV2'
-  sku: {
-    name: 'Standard_LRS'
-  }
-  properties: {
-    supportsHttpsTrafficOnly: true
-  }
-}
-
 resource funcHhostingPlan 'Microsoft.Web/serverfarms@2021-03-01' ={
   name: '${functionAppName}-asp'
   location: location
@@ -31,6 +19,9 @@ resource funcApp 'Microsoft.Web/sites@2022-03-01' = {
   name: '${functionAppName}-fa'
   kind: 'functionapp'
   location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     siteConfig: {
       appSettings: [
@@ -52,11 +43,11 @@ resource funcApp 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'AzureWebJobsStorage'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${funcStorageAccount.name};AccountKey=${listKeys(resourceId('Microsoft.Storage/storageAccounts', funcStorageAccount.name), '2019-06-01').keys[0].value};EndpointSuffix=core.windows.net'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${listKeys(resourceId('Microsoft.Storage/storageAccounts', storageAccountName), '2019-06-01').keys[0].value};EndpointSuffix=core.windows.net'
         }
         {
           name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${funcStorageAccount.name};AccountKey=${listKeys(resourceId('Microsoft.Storage/storageAccounts', funcStorageAccount.name), '2019-06-01').keys[0].value};EndpointSuffix=core.windows.net'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${listKeys(resourceId('Microsoft.Storage/storageAccounts', storageAccountName), '2019-06-01').keys[0].value};EndpointSuffix=core.windows.net'
         }
         {
           name: 'WEBSITE_CONTENTSHARE'

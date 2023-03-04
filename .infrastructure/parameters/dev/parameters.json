@@ -16,6 +16,9 @@
               "text-davinci-002",
               "text-davinci-003"
             ]
+        },
+        "containerName": {
+            "value": "pdfs"
         }
     }
 }
